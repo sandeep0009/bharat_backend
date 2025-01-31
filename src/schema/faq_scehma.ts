@@ -1,6 +1,4 @@
-import mongoose, { Document,model,Schema } from "mongoose";
-
-
+import { Document,model,Schema } from "mongoose";
 export interface IFAQ extends Document{
     question:string,
     answer:string,

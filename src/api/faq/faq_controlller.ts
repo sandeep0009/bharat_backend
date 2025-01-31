@@ -1,31 +1,27 @@
 import { Request, Response } from "express";
 import { faq } from "../../schema/faq_scehma";
 import { faqMessge } from "../../constant/constant";
-
-export const getFaq=async(
-    req:Request,
-    res:Response
-):Promise<any>=>{
+export const getFaq = async (req: Request, res: Response): Promise<any> => {
     try {
-        const {lng}=req.query;
-        const language=lng?(lng as string):'en';
-        console.log("la",language)
-        const allFaq=await faq.find();
-        const faqWithTranslation=allFaq.map((item)=>{
-            const translatedQuestion =item.translation.get(language)?.question || item.question;
-          const translatedAnswer =item.translation.get(language)?.answer || item.answer;
-            return{
-                question:translatedQuestion,
-                answer:translatedAnswer
-            }
-    })
+        const { lang } = req.query;
+        const requestedLanguage = lang ? (lang as string) : 'en';
+        const allFaq = await faq.find();
 
-    res.status(200).json({mesage:faqMessge.fetched,faqWithTranslation});
-
-        
+        let faqWithTranslation = allFaq
+            .map((item) => {
+                const translation = item.translation.get(requestedLanguage);
+                if (requestedLanguage === 'en' || translation) {
+                    return {
+                        question: translation ? translation.question : item.question,
+                        answer: translation ? translation.answer : item.answer,
+                    };
+                }
+                return null;
+            })
+            .filter((item) => item !== null);
+        res.status(200).json({ message: faqMessge.fetched, faqWithTranslation });
     } catch (error) {
-        console.log("error",error);
-        
+        console.error("Error fetching FAQs:", error);
+        res.status(500).json({ message: "Error fetching FAQs", error });
     }
-
-}
+};
